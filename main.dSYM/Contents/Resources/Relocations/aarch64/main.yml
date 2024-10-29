@@ -1,0 +1,9 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/nawfalcherkaouielmalki/Desktop/Concurrent-Hash-Table/main'
+relocations:
+  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: _readFile, symObjAddr: 0x0, symBinAddr: 0x100003CB0, symSize: 0x10C }
+  - { offsetInCU: 0x42, offset: 0x42, size: 0x8, addend: 0x0, symName: _readFile, symObjAddr: 0x0, symBinAddr: 0x100003CB0, symSize: 0x10C }
+  - { offsetInCU: 0xB0, offset: 0xB0, size: 0x8, addend: 0x0, symName: _countNumThreads, symObjAddr: 0x10C, symBinAddr: 0x100003DBC, symSize: 0xD8 }
+  - { offsetInCU: 0x102, offset: 0x102, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x1E4, symBinAddr: 0x100003E94, symSize: 0x40 }
+...
