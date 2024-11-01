@@ -14,6 +14,7 @@ void createHashRecord();
 
 void insert(key, values)
 
+// Deletes entry from hash table
 void delete(key)
 
 // Searches hash table
