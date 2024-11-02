@@ -12,6 +12,7 @@ typedef struct hash_struct
 
 void createHashRecord();
 
+// Inserts a value into the hash table
 void insert(key, values)
 
 // Deletes entry from hash table
