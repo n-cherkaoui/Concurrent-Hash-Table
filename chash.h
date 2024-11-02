@@ -10,6 +10,7 @@ typedef struct hash_struct
   struct hash_struct *next;
 } hashRecord;
 
+// Instantiates hash table
 void createHashRecord();
 
 // Inserts a value into the hash table
