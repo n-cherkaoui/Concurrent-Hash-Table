@@ -9,8 +9,6 @@
 // sem_t mutex;
 // volatile int counter = 0;
 
-void clearOutput() {}
-
 pthread_t *readFile(FILE *outputFile)
 {
     FILE *inputFile = fopen("commands.txt", "r");
