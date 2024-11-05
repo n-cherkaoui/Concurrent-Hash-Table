@@ -6,9 +6,6 @@
 #include <semaphore.h>
 #include "main.h"
 
-// sem_t mutex;
-// volatile int counter = 0;
-
 // Function to read file
 pthread_t *readFile(FILE *outputFile)
 {
@@ -25,7 +22,7 @@ pthread_t *readFile(FILE *outputFile)
         {
             return NULL;
         }
-        createThreads(inputFile, threadCount, threads, buffer);
+        createThreads(inputFile, outputFile, threadCount, threads, buffer, s);
 
         fclose(inputFile);
     }
@@ -50,11 +47,13 @@ int countNumThreads(FILE *inputFile, FILE *outputFile, char *delim, char *buffer
     fputs(buffer, outputFile);
     return threads;
 }
-void createThreads(FILE *inputFile, int numThreads, pthread_t *threadArray, char *buffer)
+
+void createThreads(FILE *inputFile, FILE *outputFile, int numThreads, pthread_t *threadArray, char *buffer, char *delim)
 {
     while (fgets(buffer, BUFFER_SIZE, inputFile) != NULL)
     {
-
+        sprintf(buffer, "%s,%s,%s\n", strtok(buffer, delim), strtok(NULL, delim), strtok(NULL, delim));
+        fputs(buffer, outputFile);
     }
 }
 

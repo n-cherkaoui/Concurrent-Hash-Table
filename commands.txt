@@ -1,4 +1,4 @@
-// Not sure how to handle thisthreads,10,0
+threads,10,0
 insert,Richard Garriot,40000
 insert,Sid Meier,50000
 insert,Shigeru Miyamoto,51000

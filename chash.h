@@ -10,19 +10,13 @@ typedef struct hash_struct
   struct hash_struct *next;
 } hashRecord;
 
-// Instantiates hash table
-void createHashRecord();
+hashRecord createHashRecord(char *name, int salary);
 
-// Inserts a value into the hash table
-void insert(key, values)
+hashRecord *insertHashRecord(char *key, int value);
 
-// Deletes entry from hash table
-void delete(key)
+hashRecord *deleteHashRecord(char *key);
 
-// Searches hash table
-void search(key)
+int searchHashRecords(char *key);
 
-// Prints the number of lock acquisitions and releases
-// Prints the hash table sorted by hash value
 void printHashTable();
 #endif
