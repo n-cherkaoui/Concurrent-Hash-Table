@@ -9,7 +9,7 @@
 // sem_t mutex;
 // volatile int counter = 0;
 
-// Function to read file
+// Function to read file.
 pthread_t *readFile(FILE *outputFile)
 {
     FILE *inputFile = fopen("commands.txt", "r");
