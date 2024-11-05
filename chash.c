@@ -1,13 +1,3 @@
-// Locks Required
-
-// Condition Variables
-// all inserts must release their write locks before a delete starts.
-// all writes must release their locks before a read can occur.
-
-// Writing and reading cannot occur simultaneously.
-// 1 read semaphore - since simultaneous reads are allowed.
-// 1 write lock - only one write allowed at once due to collisions.
-
 #include <stdint.h>
 
 typedef struct hash_struct
@@ -18,14 +8,14 @@ typedef struct hash_struct
   struct hash_struct *next;
 } hashRecord;
 
-createHashRecord()
+hash_struct createHashRecord(char *name, int salary) {}
 
-insert(key, values)
+hash_struct *insert(char *key, int value) {}
 
-delete(key)
+hash_struct *delete(key)
 
-search(key)
+int search(key)
 
 // Prints the number of lock acquisitions and releases
 // Prints the hash table sorted by hash value
-printHashTable();
+void printHashTable();
