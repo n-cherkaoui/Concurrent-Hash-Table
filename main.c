@@ -23,6 +23,8 @@ int main(void)
         pthread_join(threads[i], NULL); // Wait for each thread to finish
     }
 
+    printHashTable();
+
     free(threads);
     fclose(inputFile);
     fclose(outputFile);

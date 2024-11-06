@@ -57,4 +57,7 @@ hashRecord *searchHashRecords(char *key)
 
 // Prints the number of lock acquisitions and releases
 // Prints the hash table sorted by hash value
-// void printHashTable();
+void printHashTable(){
+    fprintf(outputFile, "Number of lock acquisitions: %d\n", lockAcquisitions);
+    fprintf(outputFile, "Number of lock releases: %d\n", lockReleases);
+}

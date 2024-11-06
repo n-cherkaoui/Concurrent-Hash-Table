@@ -7,12 +7,13 @@ typedef struct _rwlock_t
     sem_t lock;     
     sem_t writelock;
     int readers;   
-    int lockAcquisitions;
-    int lockReleases;
+    
 } rwlock_t;
 
 rwlock_t lock;
 pthread_cond_t cond;
+extern int lockAcquisitions;
+extern int lockReleases;
 
 void rwlock_init(rwlock_t *rw);
 void rwlock_acquire_readlock(rwlock_t *rw);
