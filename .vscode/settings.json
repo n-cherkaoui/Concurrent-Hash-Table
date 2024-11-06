@@ -5,6 +5,7 @@
         "utility": "cpp",
         "limits": "cpp",
         "new": "cpp",
-        "tuple": "cpp"
+        "tuple": "cpp",
+        "semaphore.h": "c"
     }
 }

@@ -1,14 +1,60 @@
-#include <stdint.h>
 #include "chash.h"
+#include "rwlock.h"
+#include "main.h"
+#include <string.h>
+#include "timestamp.h"
 
-hashRecord createHashRecord(char *name, int salary);
+uint32_t jenkins_one_at_a_time_hash(const uint8_t *key, size_t length)
+{
+    size_t i = 0;
+    uint32_t hash = 0;
+    while (i != length)
+    {
+        hash += key[i++];
+        hash += hash << 10;
+        hash ^= hash >> 6;
+    }
+    hash += hash << 3;
+    hash ^= hash >> 11;
+    hash += hash << 15;
+    return hash;
+}
 
-hashRecord *insertHashRecord(char *key, int value);
+void initHashRecords() {
+    hashRecords = NULL;
+    numRecords = 0;
+}
 
-hashRecord *deleteHashRecord(char *key);
+// hashRecord createHashRecord(char *key, uint32_t value) {
+//     uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key));
+//     hashRecord newRecord = {hashCode, key, value, NULL};
+//     return newRecord;
+// }
 
-int searchHashRecords(char *key);
+// hashRecord *insertHashRecord(char *key, uint32_t value) {
+//     hashRecord newRecord = createHashRecord(key, value);
+// }
+
+// hashRecord *deleteHashRecord(char *key);
+
+hashRecord *searchHashRecords(char *key)
+{
+    uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key));
+    rwlock_acquire_readlock(&lock);
+    hashRecord *retVal = hashRecords;
+
+    while (retVal)
+    {
+        if (retVal->hash == hashCode)
+        {
+            break;
+        }
+    }
+
+    rwlock_release_readlock(&lock);
+    return retVal;
+}
 
 // Prints the number of lock acquisitions and releases
 // Prints the hash table sorted by hash value
-void printHashTable();
+// void printHashTable();

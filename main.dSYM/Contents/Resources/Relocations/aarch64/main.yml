@@ -2,9 +2,9 @@
 triple:          'arm64-apple-darwin'
 binary-path:     '/Users/nawfalcherkaouielmalki/Desktop/Concurrent-Hash-Table/main'
 relocations:
-  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: _readFile, symObjAddr: 0x0, symBinAddr: 0x100003BFC, symSize: 0x128 }
-  - { offsetInCU: 0x42, offset: 0x42, size: 0x8, addend: 0x0, symName: _readFile, symObjAddr: 0x0, symBinAddr: 0x100003BFC, symSize: 0x128 }
+  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: _createThreads, symObjAddr: 0x0, symBinAddr: 0x100003BFC, symSize: 0x128 }
+  - { offsetInCU: 0x42, offset: 0x42, size: 0x8, addend: 0x0, symName: _createThreads, symObjAddr: 0x0, symBinAddr: 0x100003BFC, symSize: 0x128 }
   - { offsetInCU: 0xCC, offset: 0xCC, size: 0x8, addend: 0x0, symName: _countNumThreads, symObjAddr: 0x128, symBinAddr: 0x100003D24, symSize: 0xA8 }
-  - { offsetInCU: 0x12C, offset: 0x12C, size: 0x8, addend: 0x0, symName: _createThreads, symObjAddr: 0x1D0, symBinAddr: 0x100003DCC, symSize: 0xD8 }
+  - { offsetInCU: 0x12C, offset: 0x12C, size: 0x8, addend: 0x0, symName: _startThreads, symObjAddr: 0x1D0, symBinAddr: 0x100003DCC, symSize: 0xD8 }
   - { offsetInCU: 0x196, offset: 0x196, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x2A8, symBinAddr: 0x100003EA4, symSize: 0x54 }
 ...
