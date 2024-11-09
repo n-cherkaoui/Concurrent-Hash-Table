@@ -88,7 +88,7 @@ void startThreads(pthread_t* threadArray, int threadCount)
 void* processSearchThread(void* key)
 {
     printf("processing search thread\n");
-    hashRecord* record = searchHashRecords(key);
+    hashRecord* record = searchHashRecords((char*)key);
 
     // example of handling the result of the search
     if (record == NULL) {
@@ -97,7 +97,7 @@ void* processSearchThread(void* key)
         printf("record found for key: %s\n", (char*)key);
     }
 
-    free(key); // free the duplicated string after use
+    free(key);
     return NULL;
 }
 
@@ -105,11 +105,22 @@ void* processSearchThread(void* key)
 void* processInsertThread(void* key)
 {
     printf("processing insert thread\n");
+    // search to see if key exists already
+    hashRecord* record = searchHashRecords((char*)key);
+
+    // example of handling the result of the search
+    if (record == NULL) {
+        // TODO: implement insert
+
+    } else {
+        // key found so update struct
+        
+    }
 
     // insert logic goes here
     printf("inserting record with key: %s\n", (char*)key);
 
-    free(key); // free the duplicated string after use
+    free(key);
     return NULL;
 }
 
@@ -121,6 +132,6 @@ void* processDeleteThread(void* key)
     // delete logic goes here
     printf("deleting record with key: %s\n", (char*)key);
 
-    free(key); // free the duplicated string after use
+    free(key);
     return NULL;
 }
