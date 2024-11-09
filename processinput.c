@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include "timestamp.h"
 
+char buffer[BUFFER_SIZE];
 const char delim[2] = ",";
 
 pthread_t *createThreads(int threadCount)

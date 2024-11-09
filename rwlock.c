@@ -4,6 +4,8 @@
 #include <pthread.h>
 #include "timestamp.h"
 
+rwlock_t lock;
+pthread_cond_t cond;
 int lockAcquisitions;
 int lockReleases;
 

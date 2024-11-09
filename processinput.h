@@ -6,5 +6,4 @@ pthread_t *createThreads(int threadCount);
 int countNumThreads();
 void startThreads(pthread_t *threadArray);
 void *processSearchThread(void *key);
-char buffer[BUFFER_SIZE];
 #endif
