@@ -1,29 +1,26 @@
 #include "processinput.h"
-#include "main.h"
 #include "chash.h"
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
+#include "main.h"
 #include "timestamp.h"
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 
 char buffer[BUFFER_SIZE];
 const char delim[2] = ",";
 
-pthread_t *createThreads(int threadCount)
+pthread_t* createThreads(int threadCount)
 {
-    pthread_t *threads = NULL;
+    // dynamic array of threads
+    pthread_t* threads = NULL;
 
-    if (inputFile != NULL)
-    {
-        if (threadCount == 0)
-        {
+    if (inputFile != NULL) {
+        if (threadCount == 0) {
             return NULL;
         }
         threads = calloc(threadCount, sizeof(pthread_t));
-        startThreads(threads);
-    }
-    else
-    {
+        startThreads(threads, threadCount);
+    } else {
         perror("commands.txt");
         return NULL;
     }
@@ -35,8 +32,7 @@ int countNumThreads()
 {
     int threads = 0;
 
-    if (fgets(buffer, BUFFER_SIZE, inputFile) != NULL)
-    {
+    if (fgets(buffer, BUFFER_SIZE, inputFile) != NULL) {
         strtok(buffer, delim);
         threads = atoi(strtok(NULL, delim));
     }
@@ -44,32 +40,87 @@ int countNumThreads()
     pthread_mutex_lock(&file_mutex);
     fprintf(outputFile, "Running %i threads\n", threads);
     pthread_mutex_unlock(&file_mutex);
-    
+
     return threads;
 }
 
-void startThreads(pthread_t *threadArray)
+void startThreads(pthread_t* threadArray, int threadCount)
 {
     int i = 0;
+    char buffer[BUFFER_SIZE]; // buffer to hold each line from the input file
 
-    while (fgets(buffer, BUFFER_SIZE, inputFile) != NULL)
-    {
-        if (strcmp(strtok(buffer, delim), "search") == 0)
-        {
-            char *arg = strdup(strtok(NULL, delim));
-            pthread_create(&threadArray[i], NULL, processSearchThread, arg);
+    // convert lines from input file into threads
+    while (fgets(buffer, BUFFER_SIZE, inputFile) != NULL && i < threadCount) {
+        char* command = strtok(buffer, delim); // get the first token (command)
+
+        if (command == NULL) {
+            continue; // skip if no command found
         }
-        i += 1;
+
+        // run search thread
+        if (strcmp(command, "search") == 0) {
+            char* arg = strdup(strtok(NULL, delim)); // duplicate argument for thread
+            if (arg != NULL) {
+                pthread_create(&threadArray[i], NULL, processSearchThread, arg);
+                i++;
+            }
+        }
+        // run insert thread
+        else if (strcmp(command, "insert") == 0) {
+            char* arg = strdup(strtok(NULL, delim)); // duplicate argument for thread
+            if (arg != NULL) {
+                pthread_create(&threadArray[i], NULL, processInsertThread, arg);
+                i++;
+            }
+        }
+        // run delete thread
+        else if (strcmp(command, "delete") == 0) {
+            char* arg = strdup(strtok(NULL, delim)); // duplicate argument for thread
+            if (arg != NULL) {
+                pthread_create(&threadArray[i], NULL, processDeleteThread, arg);
+                i++;
+            }
+        }
     }
 }
 
-void *processSearchThread(void *key) {
-    printf("processing search thread");
-    hashRecord *record = searchHashRecords(key);
-    // if (record == NULL) {
-    //     fprintf(outputFile, "%lld: SEARCH: NOT FOUND NOT FOUND", get_microsecond_timestamp());
-        
-    // }
-    free(key);
+// thread function for search operation
+void* processSearchThread(void* key)
+{
+    printf("processing search thread\n");
+    hashRecord* record = searchHashRecords(key);
 
+    // example of handling the result of the search
+    if (record == NULL) {
+        printf("record not found for key: %s\n", (char*)key);
+    } else {
+        printf("record found for key: %s\n", (char*)key);
+    }
+
+    free(key); // free the duplicated string after use
+    return NULL;
+}
+
+// thread function for insert operation
+void* processInsertThread(void* key)
+{
+    printf("processing insert thread\n");
+
+    // insert logic goes here
+    printf("inserting record with key: %s\n", (char*)key);
+
+    free(key); // free the duplicated string after use
+    return NULL;
+}
+
+// thread function for delete operation
+void* processDeleteThread(void* key)
+{
+    printf("processing delete thread\n");
+
+    // delete logic goes here
+    printf("deleting record with key: %s\n", (char*)key);
+
+    free(key); // free the duplicated string after use
+    return NULL;
 }
