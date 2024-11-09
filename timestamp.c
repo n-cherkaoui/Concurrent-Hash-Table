@@ -1,5 +1,5 @@
 #include <sys/time.h>
-
+#include <stddef.h>
 long long get_microsecond_timestamp() {
     struct timeval tv;
     gettimeofday(&tv, NULL);

@@ -4,6 +4,9 @@
 #include <string.h>
 #include "timestamp.h"
 
+hashRecord* hashRecords;
+int numRecords;
+
 uint32_t jenkins_one_at_a_time_hash(const uint8_t *key, size_t length)
 {
     size_t i = 0;

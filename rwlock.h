@@ -10,8 +10,8 @@ typedef struct _rwlock_t
     
 } rwlock_t;
 
-rwlock_t lock;
-pthread_cond_t cond;
+// locks can be called by any file
+extern rwlock_t lock;
 extern int lockAcquisitions;
 extern int lockReleases;
 

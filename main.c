@@ -6,6 +6,7 @@
 #include "chash.h"
 #include "processinput.h"
 
+FILE *inputFile;
 FILE *outputFile;
 pthread_mutex_t file_mutex = PTHREAD_MUTEX_INITIALIZER;
 

@@ -11,8 +11,6 @@ typedef struct hash_struct
   uint32_t salary;
   struct hash_struct *next;
 } hashRecord;
-hashRecord* hashRecords;
-int numRecords;
 
 uint32_t jenkins_one_at_a_time_hash(const uint8_t *key, size_t length);
 
