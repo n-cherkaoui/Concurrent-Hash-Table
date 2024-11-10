@@ -2,10 +2,10 @@
 #include "rwlock.h"
 #include "main.h"
 #include <string.h>
+#include <stdlib.h>
 #include "timestamp.h"
 
-hashRecord* hashRecordsHead; // head of the records
-hashRecord* hashRecordsLast;
+hashRecord *hashRecords[NUM_RECORDS];
 int numRecords;
 
 uint32_t jenkins_one_at_a_time_hash(const uint8_t *key, size_t length)
@@ -24,26 +24,37 @@ uint32_t jenkins_one_at_a_time_hash(const uint8_t *key, size_t length)
     return hash;
 }
 
-void initHashRecords() {
-    hashRecordsHead = NULL;
+void initHashRecords()
+{
+    for (int i = 0; i < NUM_RECORDS; i++)
+    {
+        hashRecords[i] = NULL;
+    }
     numRecords = 0;
 }
 
-hashRecord createHashRecord(char *key, int value) {
-    uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key));
-    hashRecord newRecord = {hashCode, key, value, NULL};
+hashRecord createHashRecord(char *key, int value)
+{
+    uint32_t hashCode = jenkins_one_at_a_time_hash((const uint8_t *)key, strlen(key)) % 10;
+    hashRecord newRecord;
+    newRecord.hash = hashCode;
+    strncpy(newRecord.name, key, NAME_SIZE - 1); // Copy key to name, ensuring no overflow
+    newRecord.name[NAME_SIZE - 1] = '\0';        // Null-terminate to avoid overflow issues
+    newRecord.salary = value;
+    newRecord.next = NULL;
     return newRecord;
 }
 
+
 hashRecord *searchHashRecords(char *key)
 {
-    uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key));
+    uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key)) % NUM_RECORDS;
     rwlock_acquire_readlock(&lock);
-    hashRecord *retVal = hashRecordsHead;
+    hashRecord *retVal = hashRecords[hashCode];
 
     while (retVal != NULL)
     {
-        if (retVal->hash == hashCode)
+        if (strcmp(retVal->name, key) == 0)
         {
             break;
         }
@@ -55,44 +66,84 @@ hashRecord *searchHashRecords(char *key)
     return retVal;
 }
 
-hashRecord *insertHashRecord(char *key, int value) {
+void insertHashRecord(char *key, int value)
+{
+    uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key)) % NUM_RECORDS;
     // get the lock
-    rwlock_acquire_readlock(&lock);
-    // make a new node
-    hashRecord* newRecord = (hashRecord*)malloc(sizeof(hashRecord));
-    // save the data 
-    *newRecord = createHashRecord(key, value);
-    // add to the end
-    hashRecordsLast->next = newRecord;
-    // save the new last
-    hashRecordsLast = newRecord;
+    rwlock_acquire_writelock(&lock);
+    // check if record exists
+    hashRecord *newRecord = searchHashRecords(key);
+
+    // if record does not exist
+    if (newRecord == NULL)
+    {
+        // make a new node
+        newRecord = (hashRecord *)malloc(sizeof(hashRecord));
+        if (newRecord == NULL) {
+            rwlock_release_writelock(&lock);
+            return; // Allocation failed
+        }
+        // save the data
+        *newRecord = createHashRecord(key, value);
+
+        // Add record to head of list
+        newRecord->next = hashRecords[hashCode];
+        hashRecords[hashCode] = newRecord;
+
+        // awaken delete threads
+        numRecords += 1;
+        if (numRecords > 0) {
+            signal_table_populated();
+        }
+    }
+    else
+    {
+        // otherwise update the node
+        newRecord->salary = value;
+    }
     // release the lock
-    rwlock_release_readlock(&lock);
+    rwlock_release_writelock(&lock);
 }
 
+void deleteHashRecord(char *key)
+{
+    uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key)) % NUM_RECORDS;
+    rwlock_acquire_writelock(&lock);
 
-hashRecord *deleteHashRecord(char *key) {
-    uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key));
-    rwlock_acquire_readlock(&lock);
-    hashRecord *retVal = hashRecordsHead;
+    if (numRecords <= 0) {
+        check_if_table_populated(&lock);
+    }
 
-    // search on ahead so we can have the pointer before the target 
-    while (retVal != NULL)
+    hashRecord *head = hashRecords[hashCode];
+    hashRecord *temp;
+
+    // If node is at start of list
+    if (head && strcmp(head->name, key) == 0) {
+        temp = head;
+        hashRecords[hashCode] = head->next;
+        free(temp);
+        // prevents below loop from starting
+        head = NULL;
+    }
+
+    // search on ahead so we can have the pointer before the target
+    while (head && head->next)
     {
-        if (retVal->next->hash == hashCode)
-        {
+        if (strcmp(head->next->name, key) == 0) {
+            temp = head->next;
+            head->next = head->next->next;
+            free(temp);
             break;
         }
-        // not found so go to next
-        retVal = retVal->next;
+
     }
+    rwlock_release_writelock(&lock);
 }
-
-
 
 // Prints the number of lock acquisitions and releases
 // Prints the hash table sorted by hash value
-void printHashTable(){
+void printHashTable()
+{
     fprintf(outputFile, "Number of lock acquisitions: %d\n", lockAcquisitions);
     fprintf(outputFile, "Number of lock releases: %d\n", lockReleases);
 }

@@ -56,3 +56,11 @@ void rwlock_release_writelock(rwlock_t *rw)
 {
     sem_post(&rw->writelock);
 }
+
+void signal_table_populated() {
+    pthread_cond_signal(&cond);
+}
+
+void check_if_table_populated(rwlock_t *rw) {
+    pthread_cond_wait(&cond, &rw->writelock);
+}
