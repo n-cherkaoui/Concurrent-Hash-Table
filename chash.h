@@ -25,5 +25,8 @@ void deleteHashRecord(char *key);
 
 hashRecord *searchHashRecords(char *key);
 
+void printHashRecords();
+
 void printHashTable();
+
 #endif

@@ -8,6 +8,7 @@ rwlock_t lock;
 pthread_cond_t cond;
 int lockAcquisitions;
 int lockReleases;
+pthread_mutex_t cond_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void rwlock_init(rwlock_t *rw)
 {
@@ -62,5 +63,7 @@ void signal_table_populated() {
 }
 
 void check_if_table_populated(rwlock_t *rw) {
-    pthread_cond_wait(&cond, &rw->writelock);
+    pthread_mutex_lock(&cond_mutex);
+    pthread_cond_wait(&cond, &cond_mutex);
+    pthread_mutex_unlock(&cond_mutex);
 }
