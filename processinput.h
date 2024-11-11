@@ -1,5 +1,6 @@
 #include <pthread.h>
 #ifndef createThreads_H_
+
 #define createThreads_H_
 #define BUFFER_SIZE 256
 pthread_t *createThreads(int threadCount);

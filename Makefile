@@ -2,7 +2,7 @@
 CC = gcc
 
 # Compiler Flags
-CFLAGS = -Wall -pthread
+CFLAGS = -g -Wall -pthread
 
 # Build folder
 BUILD_DIR = build
@@ -25,6 +25,7 @@ all: $(TARGET)
 # Create the build directory if it doesn't exist, then link all object files to create the executable
 $(TARGET): $(OBJS) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+	echo "\033[32mDone!\033[0m"
 
 # Compile each .c file to .o file inside the build folder
 $(BUILD_DIR)/%.o: %.c $(HDRS) | $(BUILD_DIR)
