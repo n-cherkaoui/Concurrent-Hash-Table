@@ -20,6 +20,6 @@ void rwlock_acquire_readlock(rwlock_t *rw);
 void rwlock_release_readlock(rwlock_t *rw);
 void rwlock_acquire_writelock(rwlock_t *rw);
 void rwlock_release_writelock(rwlock_t *rw);
-void signal_table_populated();
-void check_if_table_populated(rwlock_t *rw);
+void signal_if_table_populated(int numRecords);
+void check_if_table_populated(rwlock_t *rw, int numRecords);
 #endif

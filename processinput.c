@@ -79,7 +79,13 @@ void startThreads(pthread_t* threadArray, int threadCount)
 // thread function for search operation
 void* processSearchThread(void* buffer)
 {
-    printf("processing insert thread\n");
+    char* command = strtok(buffer, delim);
+    char* name = strtok(NULL, delim);
+    int salary = atoi(strtok(NULL, delim));
+    printf("processing search thread\n");
+
+    searchHashRecords(name);
+    printf("searching %s %d\n", name);
 
     free(buffer);
     return NULL;
@@ -107,7 +113,12 @@ void* processInsertThread(void* buffer)
 // thread function for delete operation
 void* processDeleteThread(void* buffer)
 {
+    char* command = strtok(buffer, delim);
+    char* name = strtok(NULL, delim);
+    int _ = atoi(strtok(NULL, delim));
     printf("processing delete thread\n");
+
+    deleteHashRecord(name);
 
     free(buffer);
     return NULL;
