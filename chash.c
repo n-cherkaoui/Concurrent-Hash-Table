@@ -116,6 +116,7 @@ void deleteHashRecord(char *key)
 {
     uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key)) % NUM_RECORDS;
 
+    // TODO: Move this logic to rwlock.c
     pthread_mutex_lock(&cond_mutex);
     while (numRecords <= 0)
     {
