@@ -47,6 +47,7 @@ hashRecord* searchHashRecords(char* key)
 {
     printf("retVal: %s", key);
     uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key)) % NUM_RECORDS;
+    rwlock_acquire_readlock(&lock);
     hashRecord* retVal = hashRecords[hashCode];
 
     while (retVal != NULL) {
@@ -57,6 +58,7 @@ hashRecord* searchHashRecords(char* key)
         retVal = retVal->next;
     }
 
+    rwlock_release_readlock(&lock);
     return retVal;
 }
 
@@ -64,6 +66,7 @@ void insertHashRecord(char* key, int value)
 {
     uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key)) % NUM_RECORDS;
     // get the lock
+    rwlock_acquire_writelock(&lock);
     // check if record exists
     hashRecord* newRecord = searchHashRecords(key);
 
@@ -72,6 +75,7 @@ void insertHashRecord(char* key, int value)
         // make a new node
         newRecord = (hashRecord*)malloc(sizeof(hashRecord));
         if (newRecord == NULL) {
+            rwlock_release_writelock(&lock);
             return; // allocation failed
         }
         // save the data
@@ -91,11 +95,13 @@ void insertHashRecord(char* key, int value)
         newRecord->salary = value;
     }
     // release the lock
+    rwlock_release_writelock(&lock);
 }
 
 void deleteHashRecord(char* key)
 {
     uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key)) % NUM_RECORDS;
+    rwlock_acquire_writelock(&lock);
 
     if (numRecords <= 0) {
         check_if_table_populated(&lock);
@@ -122,6 +128,7 @@ void deleteHashRecord(char* key)
             break;
         }
     }
+    rwlock_release_writelock(&lock);
 }
 
 // prints the actual hash table items
