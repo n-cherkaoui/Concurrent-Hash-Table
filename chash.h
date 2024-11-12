@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <pthread.h>
 
 #ifndef CHASH_H_
 #define CHASH_H_
@@ -12,6 +13,8 @@ typedef struct hash_struct
   uint32_t salary;
   struct hash_struct *next;
 } hashRecord;
+
+extern pthread_mutex_t cond_mutex;
 
 uint32_t jenkins_one_at_a_time_hash(const uint8_t *key, size_t length);
 
