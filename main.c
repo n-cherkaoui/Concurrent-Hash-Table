@@ -24,6 +24,7 @@ int main(void)
         pthread_join(threads[i], NULL); // Wait for each thread to finish
     }
 
+    printHashRecords();
     printHashTable();
 
     free(threads);
