@@ -3,10 +3,13 @@
 #include "main.h"
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <pthread.h>
 #include "timestamp.h"
 
 static hashRecord *hashRecords[NUM_RECORDS];
 int numRecords;
+pthread_mutex_t cond_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 uint32_t jenkins_one_at_a_time_hash(const uint8_t *key, size_t length)
 {
@@ -73,65 +76,71 @@ hashRecord *searchHashRecords(char *key)
     return retVal;
 }
 
+
 void insertHashRecord(char *key, int value)
 {
     uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key)) % NUM_RECORDS;
-    // get the lock
-    rwlock_acquire_writelock(&lock);
-    // check if record exists
+
+    rwlock_acquire_writelock(&lock); // Lock for hash table operations
+
     hashRecord *newRecord = searchHashRecordHelper(key);
 
-    // if record does not exist
     if (newRecord == NULL)
     {
-        // make a new node
         newRecord = (hashRecord *)malloc(sizeof(hashRecord));
         if (newRecord == NULL)
         {
             rwlock_release_writelock(&lock);
             return; // allocation failed
         }
-        // save the data
+        
         *newRecord = createHashRecord(key, value);
-
-        // add record to head of list
         newRecord->next = hashRecords[hashCode];
         hashRecords[hashCode] = newRecord;
 
-        // awaken delete threads
+        // Update numRecords and signal within the same lock to ensure atomicity
+        pthread_mutex_lock(&cond_mutex);
         numRecords += 1;
-        signal_if_table_populated(numRecords);
+        pthread_cond_signal(&cond); // Signal if table populated
+        pthread_mutex_unlock(&cond_mutex);
     }
     else
     {
-        // otherwise update the node
         newRecord->salary = value;
     }
-    // release the lock
-    rwlock_release_writelock(&lock);
+
+    rwlock_release_writelock(&lock); // Release hash table lock
 }
 
 void deleteHashRecord(char *key)
 {
     uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key)) % NUM_RECORDS;
-    rwlock_acquire_writelock(&lock);
 
-    check_if_table_populated(&lock, numRecords);
+    // TODO: Move this logic to rwlock.c
+    pthread_mutex_lock(&cond_mutex);
+    while (numRecords <= 0)
+    {
+        pthread_cond_wait(&cond, &cond_mutex); // Wait for an item to be added
+    }
+    pthread_mutex_unlock(&cond_mutex);
+
+    rwlock_acquire_writelock(&lock); // Lock for hash table operations
 
     hashRecord *head = hashRecords[hashCode];
     hashRecord *temp;
 
-    // If node is at start of list
     if (head && strcmp(head->name, key) == 0)
     {
         temp = head;
         hashRecords[hashCode] = head->next;
         free(temp);
-        // prevents below loop from starting
+
+        pthread_mutex_lock(&cond_mutex);
+        numRecords -= 1;
+        pthread_mutex_unlock(&cond_mutex);
         head = NULL;
     }
 
-    // search on ahead so we can have the pointer before the target
     while (head && head->next)
     {
         if (strcmp(head->next->name, key) == 0)
@@ -139,10 +148,15 @@ void deleteHashRecord(char *key)
             temp = head->next;
             head->next = head->next->next;
             free(temp);
+
+            pthread_mutex_lock(&cond_mutex);
+            numRecords -= 1;
+            pthread_mutex_unlock(&cond_mutex);
             break;
         }
     }
-    rwlock_release_writelock(&lock);
+
+    rwlock_release_writelock(&lock); // Release hash table lock
 }
 
 // prints the actual hash table items
