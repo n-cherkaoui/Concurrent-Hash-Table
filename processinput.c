@@ -51,87 +51,65 @@ void startThreads(pthread_t* threadArray, int threadCount)
 
     // convert lines from input file into threads
     while (fgets(buffer, BUFFER_SIZE, inputFile) != NULL && i < threadCount) {
+        char* buffer_copy = strdup(buffer);
         char* command = strtok(buffer, delim); // get the first token (command)
 
         if (command == NULL) {
             continue; // skip if no command found
         }
 
-        // run search thread
         if (strcmp(command, "search") == 0) {
-            char* arg = strdup(strtok(NULL, delim)); // duplicate argument for thread
-            if (arg != NULL) {
-                pthread_create(&threadArray[i], NULL, processSearchThread, arg);
-                i++;
-            }
+            pthread_create(&threadArray[i], NULL, processSearchThread, buffer_copy);
         }
         // run insert thread
         else if (strcmp(command, "insert") == 0) {
-            char* arg = strdup(strtok(NULL, delim)); // duplicate argument for thread
-            if (arg != NULL) {
-                pthread_create(&threadArray[i], NULL, processInsertThread, arg);
-                i++;
-            }
+            pthread_create(&threadArray[i], NULL, processInsertThread, buffer_copy);
         }
         // run delete thread
         else if (strcmp(command, "delete") == 0) {
-            char* arg = strdup(strtok(NULL, delim)); // duplicate argument for thread
-            if (arg != NULL) {
-                pthread_create(&threadArray[i], NULL, processDeleteThread, arg);
-                i++;
-            }
+            pthread_create(&threadArray[i], NULL, processDeleteThread, buffer_copy);
+        } else {
+            free(buffer_copy); // Free memory if no valid command is found
+            continue;
         }
+        i++;
     }
 }
 
 // thread function for search operation
-void* processSearchThread(void* key)
+void* processSearchThread(void* buffer)
 {
-    printf("processing search thread\n");
-    hashRecord* record = searchHashRecords((char*)key);
+    printf("processing insert thread\n");
 
-    // example of handling the result of the search
-    if (record == NULL) {
-        printf("record not found for key: %s\n", (char*)key);
-    } else {
-        printf("record found for key: %s\n", (char*)key);
-    }
-
-    free(key);
+    free(buffer);
     return NULL;
 }
 
 // thread function for insert operation
-void* processInsertThread(void* key)
+void* processInsertThread(void* buffer)
 {
+    // get the values from the line
+    char* command = strtok(buffer, delim);
+    char* name = strtok(NULL, delim);
+    int salary = atoi(strtok(NULL, delim));
     printf("processing insert thread\n");
-    // search to see if key exists already
-    hashRecord* record = searchHashRecords((char*)key);
 
     // example of handling the result of the search
-    if (record == NULL) {
-        // TODO: implement insert
-
-    } else {
-        // key found so update struct
-        
-    }
+    insertHashRecord(name, salary);
 
     // insert logic goes here
-    printf("inserting record with key: %s\n", (char*)key);
+    printf("inserting %s and salary %d\n", name, salary);
 
-    free(key);
+    free(buffer);
     return NULL;
 }
 
 // thread function for delete operation
-void* processDeleteThread(void* key)
+void* processDeleteThread(void* buffer)
 {
     printf("processing delete thread\n");
 
-    // delete logic goes here
-    printf("deleting record with key: %s\n", (char*)key);
-
-    free(key);
+    free(buffer);
     return NULL;
+    // delete logic goes here
 }
