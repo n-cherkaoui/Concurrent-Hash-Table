@@ -43,11 +43,10 @@ hashRecord createHashRecord(char* key, int value)
     return newRecord;
 }
 
-hashRecord* searchHashRecords(char* key)
-{
+// Used in insert and delete to search the hash table without reacquiring the write lock
+hashRecord* searchHashRecordHelper(char* key) {
     printf("retVal: %s", key);
     uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key)) % NUM_RECORDS;
-    rwlock_acquire_readlock(&lock);
     hashRecord* retVal = hashRecords[hashCode];
 
     while (retVal != NULL) {
@@ -58,6 +57,13 @@ hashRecord* searchHashRecords(char* key)
         retVal = retVal->next;
     }
 
+    return retVal;
+}
+
+hashRecord* searchHashRecords(char* key)
+{
+    rwlock_acquire_readlock(&lock);
+    hashRecord* retVal = searchHashRecordHelper(key);
     rwlock_release_readlock(&lock);
     return retVal;
 }
@@ -68,7 +74,7 @@ void insertHashRecord(char* key, int value)
     // get the lock
     rwlock_acquire_writelock(&lock);
     // check if record exists
-    hashRecord* newRecord = searchHashRecords(key);
+    hashRecord* newRecord = searchHashRecordHelper(key);
 
     // if record does not exist
     if (newRecord == NULL) {

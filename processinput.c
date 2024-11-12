@@ -107,7 +107,12 @@ void* processInsertThread(void* buffer)
 // thread function for delete operation
 void* processDeleteThread(void* buffer)
 {
+    char* command = strtok(buffer, delim);
+    char* name = strtok(NULL, delim);
+    int _ = atoi(strtok(NULL, delim));
     printf("processing delete thread\n");
+
+    deleteHashRecord(name);
 
     free(buffer);
     return NULL;
