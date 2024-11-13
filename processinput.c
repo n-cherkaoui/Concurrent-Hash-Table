@@ -8,19 +8,24 @@
 
 char buffer[BUFFER_SIZE];
 const char delim[2] = ",";
+int insertCnt = 0;
 
-pthread_t* createThreads(int threadCount)
+pthread_t *createThreads(int threadCount)
 {
     // dynamic array of threads
-    pthread_t* threads = NULL;
+    pthread_t *threads = NULL;
 
-    if (inputFile != NULL) {
-        if (threadCount == 0) {
+    if (inputFile != NULL)
+    {
+        if (threadCount == 0)
+        {
             return NULL;
         }
         threads = calloc(threadCount, sizeof(pthread_t));
         startThreads(threads, threadCount);
-    } else {
+    }
+    else
+    {
         perror("commands.txt");
         return NULL;
     }
@@ -32,7 +37,8 @@ int countNumThreads()
 {
     int threads = 0;
 
-    if (fgets(buffer, BUFFER_SIZE, inputFile) != NULL) {
+    if (fgets(buffer, BUFFER_SIZE, inputFile) != NULL)
+    {
         strtok(buffer, delim);
         threads = atoi(strtok(NULL, delim));
     }
@@ -44,31 +50,58 @@ int countNumThreads()
     return threads;
 }
 
-void startThreads(pthread_t* threadArray, int threadCount)
+void startThreads(pthread_t *threadArray, int threadCount)
 {
     int i = 0;
     char buffer[BUFFER_SIZE]; // buffer to hold each line from the input file
+    long startPos = ftell(inputFile);
+
+    // count the number of insert commands
+    while (fgets(buffer, BUFFER_SIZE, inputFile) != NULL && i < threadCount)
+    {
+        char *buffer_copy = strdup(buffer);
+        char *command = strtok(buffer, delim); // get the first token (command)
+
+        if (command != NULL && strcmp(command, "insert") == 0)
+        {
+            insertCnt++;
+        }
+
+        i++;
+    }
+    printf("Number of insert commands: %d\n", insertCnt);
+
+    // reset pointer position in input file
+    fseek(inputFile, startPos, SEEK_SET);
+    i = 0;
 
     // convert lines from input file into threads
-    while (fgets(buffer, BUFFER_SIZE, inputFile) != NULL && i < threadCount) {
-        char* buffer_copy = strdup(buffer);
-        char* command = strtok(buffer, delim); // get the first token (command)
+    while (fgets(buffer, BUFFER_SIZE, inputFile) != NULL && i < threadCount)
+    {
+        char *buffer_copy = strdup(buffer);
+        char *command = strtok(buffer, delim); // get the first token (command)
 
-        if (command == NULL) {
+        if (command == NULL)
+        {
             continue; // skip if no command found
         }
 
-        if (strcmp(command, "search") == 0) {
+        if (strcmp(command, "search") == 0)
+        {
             pthread_create(&threadArray[i], NULL, processSearchThread, buffer_copy);
         }
         // run insert thread
-        else if (strcmp(command, "insert") == 0) {
+        else if (strcmp(command, "insert") == 0)
+        {
             pthread_create(&threadArray[i], NULL, processInsertThread, buffer_copy);
         }
         // run delete thread
-        else if (strcmp(command, "delete") == 0) {
+        else if (strcmp(command, "delete") == 0)
+        {
             pthread_create(&threadArray[i], NULL, processDeleteThread, buffer_copy);
-        } else {
+        }
+        else
+        {
             free(buffer_copy); // Free memory if no valid command is found
             continue;
         }
@@ -77,10 +110,10 @@ void startThreads(pthread_t* threadArray, int threadCount)
 }
 
 // thread function for search operation
-void* processSearchThread(void* buffer)
+void *processSearchThread(void *buffer)
 {
-    char* command = strtok(buffer, delim);
-    char* name = strtok(NULL, delim);
+    char *command = strtok(buffer, delim);
+    char *name = strtok(NULL, delim);
     int salary = atoi(strtok(NULL, delim));
     printf("processing search thread\n");
 
@@ -92,11 +125,11 @@ void* processSearchThread(void* buffer)
 }
 
 // thread function for insert operation
-void* processInsertThread(void* buffer)
+void *processInsertThread(void *buffer)
 {
     // get the values from the line
-    char* command = strtok(buffer, delim);
-    char* name = strtok(NULL, delim);
+    char *command = strtok(buffer, delim);
+    char *name = strtok(NULL, delim);
     int salary = atoi(strtok(NULL, delim));
     printf("processing insert thread\n");
 
@@ -111,13 +144,13 @@ void* processInsertThread(void* buffer)
 }
 
 // thread function for delete operation
-void* processDeleteThread(void* buffer)
+void *processDeleteThread(void *buffer)
 {
-    char* command = strtok(buffer, delim);
-    char* name = strtok(NULL, delim);
+    char *command = strtok(buffer, delim);
+    char *name = strtok(NULL, delim);
     printf("processing delete thread\n");
 
-    deleteHashRecord(name);
+    deleteHashRecord(name, insertCnt);
 
     free(buffer);
     return NULL;

@@ -6,9 +6,10 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include "timestamp.h"
+#include "processinput.h"
 
 static hashRecord *hashRecords[NUM_RECORDS];
-int numRecords;
+int numRecords, insertsProcessed;
 pthread_mutex_t cond_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 uint32_t jenkins_one_at_a_time_hash(const uint8_t *key, size_t length)
@@ -34,6 +35,7 @@ void initHashRecords()
         hashRecords[i] = NULL;
     }
     numRecords = 0;
+    insertsProcessed = 0;
 }
 
 hashRecord createHashRecord(char *key, int value)
@@ -76,7 +78,6 @@ hashRecord *searchHashRecords(char *key)
     return retVal;
 }
 
-
 void insertHashRecord(char *key, int value)
 {
     uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key)) % NUM_RECORDS;
@@ -93,7 +94,7 @@ void insertHashRecord(char *key, int value)
             rwlock_release_writelock(&lock);
             return; // allocation failed
         }
-        
+
         *newRecord = createHashRecord(key, value);
         newRecord->next = hashRecords[hashCode];
         hashRecords[hashCode] = newRecord;
@@ -110,16 +111,18 @@ void insertHashRecord(char *key, int value)
     }
 
     rwlock_release_writelock(&lock); // Release hash table lock
+    insertsProcessed++;
 }
 
-void deleteHashRecord(char *key)
+void deleteHashRecord(char *key, int insertCnt)
 {
     uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key)) % NUM_RECORDS;
 
     // TODO: Move this logic to rwlock.c
     pthread_mutex_lock(&cond_mutex);
-    while (numRecords <= 0)
+    while (insertsProcessed != insertCnt)
     {
+        printf("processed %d inserts\n", insertsProcessed);
         pthread_cond_wait(&cond, &cond_mutex); // Wait for an item to be added
     }
     pthread_mutex_unlock(&cond_mutex);

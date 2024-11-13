@@ -24,7 +24,7 @@ hashRecord createHashRecord(char *key, int value);
 
 void insertHashRecord(char *key, int value);
 
-void deleteHashRecord(char *key);
+void deleteHashRecord(char *key, int insertCnt);
 
 hashRecord *searchHashRecords(char *key);
 
