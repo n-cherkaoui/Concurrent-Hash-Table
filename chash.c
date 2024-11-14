@@ -1,15 +1,44 @@
 #include "chash.h"
 #include "rwlock.h"
-#include "main.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <pthread.h>
 #include "timestamp.h"
+#include <stdio.h>
+#include "processinput.h"
 
+FILE *inputFile;
+FILE *outputFile;
 static hashRecord *hashRecords[NUM_RECORDS];
 int numInserts;
 pthread_mutex_t cond_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t file_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+int main(void)
+{
+    outputFile = fopen("output.txt", "w");
+    inputFile = fopen("commands.txt", "r");
+    pthread_mutex_t file_mutex = PTHREAD_MUTEX_INITIALIZER;
+    rwlock_init(&lock);
+    int numInserts = countInsertThreads();
+    initHashRecords(numInserts);
+
+    int numThreads = countNumThreads();
+    pthread_t *threads = createThreads(numThreads);
+    for (int i = 0; i < numThreads; i++)
+    {
+        pthread_join(threads[i], NULL); // Wait for each thread to finish
+    }
+
+    printLockData();
+    printHashRecords();
+
+    free(threads);
+    fclose(inputFile);
+    fclose(outputFile);
+    return 0;
+}
 
 uint32_t jenkins_one_at_a_time_hash(const uint8_t *key, size_t length)
 {
@@ -51,7 +80,7 @@ hashRecord createHashRecord(char *key, int value)
 // Used in insert and delete to search the hash table without reacquiring the write lock
 hashRecord *searchHashRecordHelper(char *key)
 {
-    printf("retVal: %s", key);
+    // printf("retVal: %s", key);
     uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key)) % NUM_RECORDS;
     hashRecord *retVal = hashRecords[hashCode];
 

@@ -8,13 +8,13 @@ CFLAGS = -g -Wall -pthread
 BUILD_DIR = build
 
 # Output executable name (inside the build folder)
-TARGET = $(BUILD_DIR)/main
+TARGET = chash
 
 # Source files
-SRCS = main.c chash.c processinput.c rwlock.c timestamp.c
+SRCS = chash.c processinput.c rwlock.c timestamp.c
 
 # Header files (for dependencies)
-HDRS = main.h chash.h processinput.h rwlock.h timestamp.h
+HDRS = chash.h processinput.h rwlock.h timestamp.h
 
 # Object files (place them in the build folder)
 OBJS = $(SRCS:%.c=$(BUILD_DIR)/%.o)
