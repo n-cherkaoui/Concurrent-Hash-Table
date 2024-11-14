@@ -21,12 +21,13 @@ int main(void)
 
     int numThreads = countNumThreads();
     pthread_t *threads = createThreads(numThreads);
-    for (int i = 0; i < numThreads; i++) {
+    for (int i = 0; i < numThreads; i++)
+    {
         pthread_join(threads[i], NULL); // Wait for each thread to finish
     }
 
+    printLockData();
     printHashRecords();
-    printHashTable();
 
     free(threads);
     fclose(inputFile);

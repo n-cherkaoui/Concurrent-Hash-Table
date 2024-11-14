@@ -30,7 +30,7 @@ hashRecord *searchHashRecords(char *key);
 
 void printHashRecords();
 
-void printHashTable();
+void printLockData();
 
 int countInsertThreads();
 
