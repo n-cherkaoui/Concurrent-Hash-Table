@@ -22,9 +22,9 @@ void initHashRecords();
 
 hashRecord createHashRecord(char *key, int value);
 
-void insertHashRecord(char *key, int value);
+void insertHashRecord(char *key, int value, int *insertCnt);
 
-void deleteHashRecord(char *key, int insertCnt);
+void deleteHashRecord(char *key, int *insertCnt);
 
 hashRecord *searchHashRecords(char *key);
 

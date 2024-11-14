@@ -8,7 +8,8 @@
 
 char buffer[BUFFER_SIZE];
 const char delim[2] = ",";
-int insertCnt = 0;
+int ptrHolder = 0;
+int *insertCnt = &ptrHolder;
 
 pthread_t *createThreads(int threadCount)
 {
@@ -64,12 +65,12 @@ void startThreads(pthread_t *threadArray, int threadCount)
 
         if (command != NULL && strcmp(command, "insert") == 0)
         {
-            insertCnt++;
+            (*insertCnt)++;
         }
 
         i++;
     }
-    printf("Number of insert commands: %d\n", insertCnt);
+    printf("Number of insert commands: %d\n", *insertCnt);
 
     // reset pointer position in input file
     fseek(inputFile, startPos, SEEK_SET);
@@ -134,7 +135,7 @@ void *processInsertThread(void *buffer)
     printf("processing insert thread\n");
 
     // example of handling the result of the search
-    insertHashRecord(name, salary);
+    insertHashRecord(name, salary, insertCnt);
 
     // insert logic goes here
     printf("inserting %s and salary %d\n", name, salary);

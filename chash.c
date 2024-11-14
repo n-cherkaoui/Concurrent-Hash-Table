@@ -9,7 +9,6 @@
 #include "processinput.h"
 
 static hashRecord *hashRecords[NUM_RECORDS];
-int numRecords, insertsProcessed;
 pthread_mutex_t cond_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 uint32_t jenkins_one_at_a_time_hash(const uint8_t *key, size_t length)
@@ -34,8 +33,6 @@ void initHashRecords()
     {
         hashRecords[i] = NULL;
     }
-    numRecords = 0;
-    insertsProcessed = 0;
 }
 
 hashRecord createHashRecord(char *key, int value)
@@ -78,7 +75,7 @@ hashRecord *searchHashRecords(char *key)
     return retVal;
 }
 
-void insertHashRecord(char *key, int value)
+void insertHashRecord(char *key, int value, int *insertCnt)
 {
     uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key)) % NUM_RECORDS;
 
@@ -101,7 +98,7 @@ void insertHashRecord(char *key, int value)
 
         // Update numRecords and signal within the same lock to ensure atomicity
         pthread_mutex_lock(&cond_mutex);
-        numRecords += 1;
+        (*insertCnt)--;
         pthread_cond_signal(&cond); // Signal if table populated
         pthread_mutex_unlock(&cond_mutex);
     }
@@ -111,24 +108,23 @@ void insertHashRecord(char *key, int value)
     }
 
     rwlock_release_writelock(&lock); // Release hash table lock
-    insertsProcessed++;
 }
 
-void deleteHashRecord(char *key, int insertCnt)
+void deleteHashRecord(char *key, int *insertCnt)
 {
     uint32_t hashCode = jenkins_one_at_a_time_hash(key, strlen(key)) % NUM_RECORDS;
 
     // TODO: Move this logic to rwlock.c
     pthread_mutex_lock(&cond_mutex);
-    while (insertsProcessed != insertCnt)
+    while (*insertCnt > 0)
     {
-        printf("processed %d inserts\n", insertsProcessed);
+        printf("%d inserts left\n", *insertCnt);
         pthread_cond_wait(&cond, &cond_mutex); // Wait for an item to be added
     }
     pthread_mutex_unlock(&cond_mutex);
 
     rwlock_acquire_writelock(&lock); // Lock for hash table operations
-
+    printf("Deleting\n");
     hashRecord *head = hashRecords[hashCode];
     hashRecord *temp;
 
@@ -138,9 +134,6 @@ void deleteHashRecord(char *key, int insertCnt)
         hashRecords[hashCode] = head->next;
         free(temp);
 
-        pthread_mutex_lock(&cond_mutex);
-        numRecords -= 1;
-        pthread_mutex_unlock(&cond_mutex);
         head = NULL;
     }
 
@@ -152,9 +145,6 @@ void deleteHashRecord(char *key, int insertCnt)
             head->next = head->next->next;
             free(temp);
 
-            pthread_mutex_lock(&cond_mutex);
-            numRecords -= 1;
-            pthread_mutex_unlock(&cond_mutex);
             break;
         }
     }
