@@ -32,4 +32,6 @@ void printHashRecords();
 
 void printHashTable();
 
+int countInsertThreads();
+
 #endif
