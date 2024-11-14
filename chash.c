@@ -8,7 +8,7 @@
 #include "timestamp.h"
 
 static hashRecord *hashRecords[NUM_RECORDS];
-int numRecords;
+int numInserts;
 pthread_mutex_t cond_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 uint32_t jenkins_one_at_a_time_hash(const uint8_t *key, size_t length)
@@ -27,13 +27,13 @@ uint32_t jenkins_one_at_a_time_hash(const uint8_t *key, size_t length)
     return hash;
 }
 
-void initHashRecords()
+void initHashRecords(int insertThreads)
 {
     for (int i = 0; i < NUM_RECORDS; i++)
     {
         hashRecords[i] = NULL;
     }
-    numRecords = 0;
+    numInserts = insertThreads;
 }
 
 hashRecord createHashRecord(char *key, int value)
@@ -98,10 +98,10 @@ void insertHashRecord(char *key, int value)
         newRecord->next = hashRecords[hashCode];
         hashRecords[hashCode] = newRecord;
 
-        // Update numRecords and signal within the same lock to ensure atomicity
+        // Update numInserts and signal within the same lock to ensure atomicity
         pthread_mutex_lock(&cond_mutex);
-        numRecords += 1;
-        pthread_cond_signal(&cond); // Signal if table populated
+        numInserts -= 1;
+        pthread_cond_broadcast(&cond); // Signal if table populated
         pthread_mutex_unlock(&cond_mutex);
     }
     else
@@ -118,7 +118,7 @@ void deleteHashRecord(char *key)
 
     // TODO: Move this logic to rwlock.c
     pthread_mutex_lock(&cond_mutex);
-    while (numRecords <= 0)
+    while (numInserts > 0)
     {
         pthread_cond_wait(&cond, &cond_mutex); // Wait for an item to be added
     }
@@ -135,9 +135,6 @@ void deleteHashRecord(char *key)
         hashRecords[hashCode] = head->next;
         free(temp);
 
-        pthread_mutex_lock(&cond_mutex);
-        numRecords -= 1;
-        pthread_mutex_unlock(&cond_mutex);
         head = NULL;
     }
 
@@ -149,9 +146,6 @@ void deleteHashRecord(char *key)
             head->next = head->next->next;
             free(temp);
 
-            pthread_mutex_lock(&cond_mutex);
-            numRecords -= 1;
-            pthread_mutex_unlock(&cond_mutex);
             break;
         }
     }
@@ -170,7 +164,7 @@ void printHashRecords()
         hashRecord *print = hashRecords[i];
         while (print != NULL)
         {
-            printf("%s - ", print->name);
+            printf("%s - %lld", print->name, print->hash);
             print = print->next;
         }
         printf("\n");

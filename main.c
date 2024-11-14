@@ -16,7 +16,8 @@ int main(void)
     inputFile = fopen("commands.txt", "r");
     pthread_mutex_t file_mutex = PTHREAD_MUTEX_INITIALIZER;
     rwlock_init(&lock);
-    initHashRecords();
+    int numInserts = countInsertThreads();
+    initHashRecords(numInserts);
 
     int numThreads = countNumThreads();
     pthread_t *threads = createThreads(numThreads);

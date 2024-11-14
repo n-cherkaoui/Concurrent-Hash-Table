@@ -28,6 +28,23 @@ pthread_t* createThreads(int threadCount)
     return threads;
 }
 
+int countInsertThreads()
+{
+    int insertThreads = 0;
+    rewind(inputFile); // Ensure we start from the beginning of the file
+
+    while (fgets(buffer, BUFFER_SIZE, inputFile) != NULL) {
+        char *command = strtok(buffer, delim);
+        if (command && strcmp(command, "insert") == 0) {
+            insertThreads++;
+        }
+    }
+
+    rewind(inputFile); // Reset the file pointer to the beginning for later use
+    return insertThreads;
+}
+
+
 int countNumThreads()
 {
     int threads = 0;
