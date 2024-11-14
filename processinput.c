@@ -1,6 +1,5 @@
 #include "processinput.h"
 #include "chash.h"
-#include "main.h"
 #include "timestamp.h"
 #include <ctype.h>
 #include <stdlib.h>
@@ -112,7 +111,7 @@ void *processSearchThread(void *buffer)
     char *command = strtok(buffer, delim);
     char *name = strtok(NULL, delim);
     int salary = atoi(strtok(NULL, delim));
-    printf("processing search thread\n");
+    // printf("processing search thread\n");
 
     searchHashRecords(name);
 
@@ -127,13 +126,13 @@ void *processInsertThread(void *buffer)
     char *command = strtok(buffer, delim);
     char *name = strtok(NULL, delim);
     int salary = atoi(strtok(NULL, delim));
-    printf("processing insert thread\n");
+    // printf("processing insert thread\n");
 
     // example of handling the result of the search
     insertHashRecord(name, salary);
 
     // insert logic goes here
-    printf("inserting %s and salary %d\n", name, salary);
+    // printf("inserting %s and salary %d\n", name, salary);
 
     free(buffer);
     return NULL;
@@ -144,7 +143,7 @@ void *processDeleteThread(void *buffer)
 {
     char *command = strtok(buffer, delim);
     char *name = strtok(NULL, delim);
-    printf("processing delete thread\n");
+    // printf("processing delete thread\n");
 
     deleteHashRecord(name);
 

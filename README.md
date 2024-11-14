@@ -4,9 +4,9 @@ for more information about this project see [this description](https://webcourse
 ## Getting started
 This project only works with linux systems so consider using MAC or Ubuntu. For windows use WSL.
 
-## Building 
-To build run 
-``` 
+## Building
+To build run
+```
 make all
 ```
 
@@ -20,4 +20,7 @@ To run the project first configure the inputs in the commands.txt file. then see
 
 Run with
 ```
-./build/main
+./chash
+
+## AI Attribution
+I, Mauricio, used ChatGPT to help write the functions that print and sort the hash table according to the hash codes which can be found in compareHashRecords() and printHashRecords() within chash.c.

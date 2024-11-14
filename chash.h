@@ -6,6 +6,8 @@
 #define CHASH_H_
 #define NAME_SIZE 50
 #define NUM_RECORDS 10
+#define INPUT_FILE "commands.txt"
+#define OUTPUT_FILE "output.txt"
 typedef struct hash_struct
 {
   uint32_t hash;
@@ -13,6 +15,11 @@ typedef struct hash_struct
   uint32_t salary;
   struct hash_struct *next;
 } hashRecord;
+
+// file pointers accessed by any file
+extern FILE *inputFile;
+extern FILE *outputFile;
+extern pthread_mutex_t file_mutex;
 
 extern pthread_mutex_t cond_mutex;
 

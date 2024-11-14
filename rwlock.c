@@ -1,6 +1,5 @@
 #include "rwlock.h"
 #include "processinput.h"
-#include "main.h"
 #include <pthread.h>
 #include "chash.h"
 #include <stdbool.h>
@@ -26,7 +25,8 @@ void rwlock_acquire_readlock(rwlock_t *rw)
 {
     sem_wait(&rw->readers_lock); // Lock the readers count
     rw->readers++;
-    if (rw->readers == 1) {
+    if (rw->readers == 1)
+    {
         sem_wait(&rw->writelock); // First reader locks the write lock
     }
     sem_post(&rw->readers_lock); // Release the readers count lock
@@ -45,7 +45,8 @@ void rwlock_release_readlock(rwlock_t *rw)
 {
     sem_wait(&rw->readers_lock); // Lock the readers count
     rw->readers--;
-    if (rw->readers == 0) {
+    if (rw->readers == 0)
+    {
         sem_post(&rw->writelock); // Last reader releases the write lock
     }
     sem_post(&rw->readers_lock); // Release the readers count lock
@@ -98,10 +99,10 @@ void check_if_table_populated(rwlock_t *rw, int numRecords)
     pthread_mutex_lock(&cond_mutex);
     while (numRecords <= 0)
     {
-        printf("waiting on inserts\n");
+        // printf("waiting on inserts\n");
         fprintf(outputFile, "%lld: WAITING ON INSERTS\n", get_microsecond_timestamp());
         pthread_cond_wait(&cond, &cond_mutex);
-        printf("delete awakened\n");
+        // printf("delete awakened\n");
         fprintf(outputFile, "%lld: DELETE AWAKENED\n", get_microsecond_timestamp());
     }
     pthread_mutex_unlock(&cond_mutex);
