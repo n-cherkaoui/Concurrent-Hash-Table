@@ -72,10 +72,14 @@ hashRecord *searchHashRecords(char *key)
 {
     rwlock_acquire_readlock(&lock);
     hashRecord *retVal = searchHashRecordHelper(key);
+    // TODO: Check the result of search and print to file
+    if (retVal == NULL)
+        fprintf(outputFile, "%lld: SEARCH: NOT FOUND NOT FOUND\n", get_microsecond_timestamp());
+    else
+        fprintf(outputFile, "%lld: SEARCH,%s\n", get_microsecond_timestamp(), retVal->name);
     rwlock_release_readlock(&lock);
     return retVal;
 }
-
 
 void insertHashRecord(char *key, int value)
 {
@@ -93,15 +97,18 @@ void insertHashRecord(char *key, int value)
             rwlock_release_writelock(&lock);
             return; // allocation failed
         }
-        
+
         *newRecord = createHashRecord(key, value);
         newRecord->next = hashRecords[hashCode];
         hashRecords[hashCode] = newRecord;
 
+        fprintf(outputFile, "%lld: INSERT,%u,%s,%u\n", get_microsecond_timestamp(), newRecord->hash, newRecord->name, newRecord->salary);
+
         // Update numInserts and signal within the same lock to ensure atomicity
         pthread_mutex_lock(&cond_mutex);
         numInserts -= 1;
-        pthread_cond_broadcast(&cond); // Signal if table populated
+        if (numInserts == 0)
+            pthread_cond_broadcast(&cond); // Signal if table populated
         pthread_mutex_unlock(&cond_mutex);
     }
     else
@@ -120,7 +127,9 @@ void deleteHashRecord(char *key)
     pthread_mutex_lock(&cond_mutex);
     while (numInserts > 0)
     {
+        fprintf(outputFile, "%lld: WAITING ON INSERTS\n", get_microsecond_timestamp());
         pthread_cond_wait(&cond, &cond_mutex); // Wait for an item to be added
+        fprintf(outputFile, "%lld: DELETE AWAKENED\n", get_microsecond_timestamp());
     }
     pthread_mutex_unlock(&cond_mutex);
 
@@ -133,8 +142,10 @@ void deleteHashRecord(char *key)
     {
         temp = head;
         hashRecords[hashCode] = head->next;
-        free(temp);
 
+        fprintf(outputFile, "%lld: DELETE,%s\n", get_microsecond_timestamp(), temp->name);
+
+        free(temp);
         head = NULL;
     }
 
@@ -144,8 +155,10 @@ void deleteHashRecord(char *key)
         {
             temp = head->next;
             head->next = head->next->next;
-            free(temp);
 
+            fprintf(outputFile, "%lld: DELETE,%s\n", get_microsecond_timestamp(), temp->name);
+
+            free(temp);
             break;
         }
     }
@@ -153,28 +166,51 @@ void deleteHashRecord(char *key)
     rwlock_release_writelock(&lock); // Release hash table lock
 }
 
-// prints the actual hash table items
+// Function to compare two hashRecord pointers for sorting
+int compareHashRecords(const void *a, const void *b)
+{
+    hashRecord *recordA = *(hashRecord **)a;
+    hashRecord *recordB = *(hashRecord **)b;
+    return (recordA->hash > recordB->hash) - (recordA->hash < recordB->hash);
+}
+
 void printHashRecords()
 {
-    // loop through the hash items
+    // Step 1: Collect all hash records in a dynamic array
+    hashRecord **recordList = NULL;
+    int recordCount = 0;
+
+    // Loop through the hash items and collect all nodes
     for (int i = 0; i < NUM_RECORDS; i++)
     {
-        printf("- ");
-        // check for collision
-        hashRecord *print = hashRecords[i];
-        while (print != NULL)
+        hashRecord *current = hashRecords[i];
+        while (current != NULL)
         {
-            printf("%s - %lld", print->name, print->hash);
-            print = print->next;
+            recordCount++;
+            recordList = realloc(recordList, recordCount * sizeof(hashRecord *));
+            recordList[recordCount - 1] = current;
+            current = current->next;
         }
-        printf("\n");
     }
+
+    // Step 2: Sort the list of records by their hash value
+    qsort(recordList, recordCount, sizeof(hashRecord *), compareHashRecords);
+
+    // Step 3: Print the sorted records
+    for (int i = 0; i < recordCount; i++)
+    {
+        fprintf(outputFile, "%u,%s,%u\n", recordList[i]->hash, recordList[i]->name, recordList[i]->salary);
+    }
+
+    // Free the temporary list
+    free(recordList);
 }
 
 // Prints the number of lock acquisitions and releases
 // Prints the hash table sorted by hash value
-void printHashTable()
+void printLockData()
 {
+    fprintf(outputFile, "Finished all threads.\n");
     fprintf(outputFile, "Number of lock acquisitions: %d\n", lockAcquisitions);
     fprintf(outputFile, "Number of lock releases: %d\n", lockReleases);
 }
