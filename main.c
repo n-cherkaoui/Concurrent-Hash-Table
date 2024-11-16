@@ -36,7 +36,7 @@ pthread_t *readFile(FILE *outputFile)
     }
 }
 
-// Test
+// Test2
 int countNumThreads(FILE *inputFile, FILE *outputFile, char *delim, char *buffer)
 {
     int threads = 0;
